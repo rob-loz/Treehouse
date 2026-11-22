@@ -135,6 +135,7 @@ const WALLS=[
  ['x',5.35,0.6,3.83,0.12,[{a:2.95,b:3.75,y0:0,y1:2.05}]],
  ['z',3.83,3.6,7.8,0.12,[{a:4.4,b:5.2,y0:0,y1:2.05}]],
  ['x',3.6,3.83,6.5,0.12,[]],
+ ['x',3.6,2.96,3.77,0.12,[{a:2.9,b:3.83,y0:0,y1:2.05}]],   // bulkhead over the hallway entrance
  ['x',5.55,0.9,2.1,0.4,[]],   // nib in 2nd bedroom: 0.4 m deep, runs 1.6 m from the window wall
 ];
 function seg(ax,f,a,b,y0,y1,th,mat,g){
@@ -167,20 +168,23 @@ function buildWalls(H){
   }
   // doors (angle opens leaf)
   const dh=Math.min(2.03,H);
-  door(0.6,3.5,0.8,[0.94,-0.34],'#3a2f2a',dh);   // entry (hinged on the south side)
+  door(0.6,3.5,0.8,[1,0],'#3a2f2a',dh);   // entry (hinged on the south side), swung fully open against the wall
   door(2.9,4.5,0.75,[-0.94,-0.34],'#f7f7f5',dh); // bath
   door(3.75,5.35,0.8,[-0.34,0.94],'#f7f7f5',dh); // bedroom 1
   door(3.83,4.4,0.8,[0.94,0.34],'#f7f7f5',dh);  // bedroom 2
   // wall finishes
   paintRoom(3.83,6.5,3.6,7.8,H,[{y0:0,y1:9,mat:M('#f7d3b5')}]);           // main bedroom: pastel apricot
-  const OR=[{y0:0,y1:9,mat:M('#f7e9a8')}];                                 // 2nd bedroom: pastel yellow
+  const OR=[{y0:0,y1:9,mat:M('#f6b987')}];                                 // 2nd bedroom: pastel orange
   paintSide('x',5.55,1,0.7,2.3,H,OR);paintSide('x',5.35,1,2.3,3.77,H,OR);seg('z',2.305,5.41,5.75,0,H,0.008,OR[0].mat,wallGroup);
   paintSide('z',0.6,1,5.75,7.7,H,OR);paintSide('z',3.83,-1,5.41,7.7,H,OR);paintSide('x',7.8,-1,0.7,3.77,H,OR);
-  const YE=[{y0:0,y1:9,mat:M('#f6b987')}];                                 // living + kitchen: pastel orange
-  paintSide('x',0,1,0.1,6.4,H,YE);paintSide('z',0,1,0.1,2.4,H,YE);paintSide('x',2.5,-1,0.1,0.5,H,YE);paintSide('z',0.6,1,2.6,3.54,H,YE);
+  const YE=[{y0:0,y1:9,mat:M('#b8dcf4')}];                                 // living + kitchen: sky blue
+  paintSide('x',0,1,0.1,6.4,H,YE);paintSide('z',0,1,0.1,2.4,H,YE);paintSide('x',2.5,-1,0.1,0.7,H,YE);paintSide('z',0.6,1,2.4,3.54,H,YE);
   paintSide('x',3.6,-1,0.7,2.84,H,YE);paintSide('x',3.6,-1,3.89,6.4,H,YE);paintSide('z',6.5,-1,0.1,3.54,H,YE);
-  const RE=[{y0:0,y1:9,mat:M('#f1b3ad')}];                                 // hallway: pastel red
-  paintSide('z',2.9,1,3.6,5.29,H,RE);paintSide('z',3.83,-1,3.6,5.29,H,RE);paintSide('x',5.35,-1,2.96,3.77,H,RE);
+  const RE=YE;                                                              // hallway: same sky blue as the living room
+  paintSide('z',2.9,1,3.535,5.29,H,RE);paintSide('z',3.83,-1,3.535,5.29,H,RE);
+  seg('x',3.536,2.835,2.966,0,H,0.008,RE[0].mat,wallGroup);seg('x',3.536,3.764,3.895,0,H,0.008,RE[0].mat,wallGroup); // wall ends at the hall opening
+  paintSide('x',5.35,-1,2.96,3.77,H,RE);                                   // hall side of the wall over the 2nd bedroom door
+  paintSide('x',3.6,1,2.96,3.77,H,RE);                                     // hall side of the bulkhead
   paintRoom(0.6,2.9,3.6,5.35,H,[{y0:0,y1:2.1,tile:true},{y0:2.1,y1:9,mat:CREAM}]); // bath: green tile to window head, cream above
   const rh=Math.min(2.3,H);
   // main bedroom built-in robe
@@ -223,118 +227,210 @@ function door(hx,hz,w,dir,color,h){
   wallGroup.add(p);}
 
 // ---------- Living ----------
-const MUSTARD=M('#d7a64a');
-boxR(1.1,2.8,0.002,0.012,0.7,2.6,M('#9c9a96'));                  // rug
+const MUSTARD=M('#d7a64a'),COBALT=M('#1d47a8',{roughness:0.85}),COBALT2=M('#2753b5',{roughness:0.85});
+// colourful Afghan-style rug: red field, guls, layered borders, fringe
+(function(){const tex=canvasTex(512,576,(g,w,h)=>{
+  g.fillStyle='#1f2c4f';g.fillRect(0,0,w,h);
+  const band=(m,c)=>{g.fillStyle=c;g.fillRect(m,m,w-2*m,h-2*m);};
+  band(10,'#d9772b');band(18,'#efe3c8');band(24,'#1f2c4f');band(48,'#c9a227');band(54,'#8e1f24');
+  // small border motifs
+  g.fillStyle='#efe3c8';for(let x=40;x<w-30;x+=26){g.fillRect(x,32,8,8);g.fillRect(x,h-40,8,8);}for(let y=40;y<h-30;y+=26){g.fillRect(32,y,8,8);g.fillRect(w-40,y,8,8);}
+  // guls: octagons in rows
+  const oct=(cx,cy,r,c)=>{g.fillStyle=c;g.beginPath();for(let i=0;i<8;i++){const a=Math.PI/8+i*Math.PI/4;g.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));}g.closePath();g.fill();};
+  for(let row=0;row<3;row++)for(let col=0;col<2;col++){const cx=170+col*172,cy=150+row*138;
+    oct(cx,cy,62,'#1f2c4f');oct(cx,cy,50,'#d9772b');oct(cx,cy,38,'#efe3c8');oct(cx,cy,26,'#8e1f24');
+    g.fillStyle='#1f2c4f';g.fillRect(cx-6,cy-30,12,60);g.fillRect(cx-30,cy-6,60,12);
+    g.fillStyle='#2f7f6f';for(const[dx,dy]of[[-44,-44],[44,-44],[-44,44],[44,44]])g.fillRect(cx+dx-5,cy+dy-5,10,10);}
+  // minor diamonds between guls
+  g.fillStyle='#c9a227';for(let row=0;row<2;row++){const cy=219+row*138;g.beginPath();g.moveTo(256,cy-16);g.lineTo(272,cy);g.lineTo(256,cy+16);g.lineTo(240,cy);g.fill();}
+ });
+ const rug=new THREE.Mesh(new THREE.PlaneGeometry(1.7,1.9),new THREE.MeshStandardMaterial({map:tex,roughness:1}));
+ rug.rotation.x=-Math.PI/2;rug.position.set(1.95,0.012,1.65);rug.receiveShadow=true;furn.add(rug);
+ for(const z of[0.68,2.62])for(let x=1.12;x<2.8;x+=0.035)boxR(x,x+0.012,0.002,0.008,z-0.03,z+0.03,M('#f2ead8'));
+})();
 // built-in day bed, full length of the west wall, storage drawers under
 boxR(0.1,1.05,0,0.42,0.1,2.4,WOOD);
 for(const z0 of[0.14,0.9,1.66])for(const[y0,y1]of[[0.04,0.21],[0.23,0.4]]){boxR(1.05,1.065,y0,y1,z0,z0+0.72,WOOD2);boxR(1.065,1.075,(y0+y1)/2-0.01,(y0+y1)/2+0.01,z0+0.26,z0+0.46,PULL);}
-boxR(0.12,1.0,0.42,0.6,0.12,2.38,M('#ede6d9'));                  // mattress
-boxR(0.12,0.3,0.6,0.85,0.14,2.36,M('#c9b89c'));                  // back bolster
-boxR(0.3,0.95,0.6,0.75,0.12,0.3,M('#c9b89c'));boxR(0.3,0.95,0.6,0.75,2.2,2.38,M('#c9b89c'));
+boxR(0.12,1.0,0.42,0.6,0.12,2.38,COBALT);                         // mattress / seat cushion
+boxR(0.12,0.3,0.6,0.85,0.14,2.36,COBALT2);                        // back bolster
+boxR(0.3,0.95,0.6,0.75,0.12,0.3,COBALT2);boxR(0.3,0.95,0.6,0.75,2.2,2.38,COBALT2);
 boxR(0.3,0.45,0.6,0.95,0.7,1.1,MUSTARD);boxR(0.3,0.45,0.6,0.95,1.4,1.8,MUSTARD);
 cyl(0.5,0.5,0.06,1.85,0.33,1.65,M('#efece6',{roughness:0.6}));   // coffee table
 for(let i=0;i<3;i++){const a=i*2.094+0.5;boxR(1.85+Math.cos(a)*0.3-0.06,1.85+Math.cos(a)*0.3+0.06,0,0.33,1.65+Math.sin(a)*0.3-0.1,1.65+Math.sin(a)*0.3+0.1,TIMBER);}
 boxR(1.7,1.98,0.39,0.47,1.5,1.72,M('#2f7f8a'));                 // books
-// orange swivel tub chair (Dyvlinge-style) between coffee table and balcony doors, facing the table
-(function(x,z){const O=M('#e2692b',{roughness:0.9}),g=new THREE.Group();g.position.set(x,0,z);
- const add=(geo,mat,px,py,pz)=>{const m=new THREE.Mesh(geo,mat);m.position.set(px,py,pz);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
- add(new THREE.CylinderGeometry(0.3,0.3,0.02,32),BLACK,0,0.01,0);
- add(new THREE.CylinderGeometry(0.03,0.03,0.22,12),BLACK,0,0.12,0);
- add(new THREE.CylinderGeometry(0.37,0.34,0.14,32),O,0,0.3,0);
- add(new THREE.CylinderGeometry(0.33,0.33,0.06,32),M('#ea7a3c',{roughness:0.9}),0,0.4,0.02);
- const shell=add(new THREE.CylinderGeometry(0.39,0.37,0.44,40,1,true,0.3*Math.PI,1.4*Math.PI),M('#e2692b',{roughness:0.9,side:THREE.DoubleSide}),0,0.57,0);
- const rim=new THREE.Mesh(new THREE.TorusGeometry(0.38,0.05,10,40,1.4*Math.PI),O);rim.rotation.x=-Math.PI/2;
- const rg=new THREE.Group();rg.add(rim);rg.rotation.y=-0.2*Math.PI;rg.position.y=0.79;rim.castShadow=true;g.add(rg);
- furn.add(g);})(1.85,0.62);
+// orange corduroy lounge chair: low seat, flat back, short swivel base, facing the coffee table
+(function(x,z){const cord=canvasTex(64,64,(g,w,h)=>{for(let i=0;i<8;i++){g.fillStyle=i%2?'#d9622a':'#ee8142';g.fillRect(i*8,0,8,h);g.fillStyle='#b9501c';g.fillRect(i*8+7,0,1,h);}});
+ const mk=(rx,ry)=>{const t=cord.clone();t.needsUpdate=true;t.repeat.set(rx,ry);return new THREE.MeshStandardMaterial({map:t,roughness:0.95});};
+ const g=new THREE.Group();g.position.set(x,0,z);
+ const add=(geo,mat,px,py,pz,rx)=>{const m=new THREE.Mesh(geo,mat);m.position.set(px,py,pz);if(rx)m.rotation.x=rx;m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
+ add(new THREE.CylinderGeometry(0.28,0.28,0.02,32),BLACK,0,0.01,0);
+ add(new THREE.CylinderGeometry(0.035,0.035,0.08,12),BLACK,0,0.06,0);
+ add(new THREE.BoxGeometry(0.74,0.16,0.68),mk(9,2),0,0.17,0.02);             // seat base
+ add(new THREE.BoxGeometry(0.6,0.1,0.58),mk(8,1),0,0.3,0.06);                // seat cushion (top at 35 cm)
+ add(new THREE.BoxGeometry(0.74,0.5,0.14),mk(9,6),0,0.47,-0.29,-0.08);       // flat back
+ for(const sx of[-1,1])add(new THREE.BoxGeometry(0.08,0.22,0.6),mk(1,3),0.33*sx,0.36,0.03);  // low arms
+ furn.add(g);})(1.85,0.7);
 // rope bench
-// built-in bookcase around a window-seat style bench (clear of the entry door swing)
+// book nook: timber drop bench, kept clear of the front door's full swing, running to the hallway door frame;
+// bookshelves under the bench, 800 mm clear above, two shelves over; top shelf continues over the door
 (function(){const J=WOOD,zb=3.2,zf=3.54;
  const books=['#2f6f6a','#c4683f','#3d4f73','#d9b25b','#8a3f3f','#6f8f6a','#e7ddcb','#4a4a4a'];
- const shelfRun=(x1,x2,y)=>{let x=x1+0.02,i=Math.floor(y*7);while(x<x2-0.05){const w=0.03+((i*37)%5)*0.008,h=0.2+((i*13)%4)*0.03;
-   if(x+w>x2-0.02)break;boxR(x,x+w,y,y+h,zb+0.03,zb+0.25,M(books[i%books.length]),wallItems);x+=w+0.004;i++;}};
- for(const[x1,x2]of[[1.45,1.7],[2.63,2.88]]){
-   boxR(x1,x1+0.02,0,2.4,zb,zf,J,wallItems);boxR(x2-0.02,x2,0,2.4,zb,zf,J,wallItems);
-   for(const y of[0,0.45,0.85,1.25,1.65,2.05,2.38])boxR(x1,x2,y,y+0.02,zb,zf,J,wallItems);
-   for(const y of[0.47,0.87,1.27,1.67,2.07])shelfRun(x1,x2,y);}
- boxR(1.45,2.88,2.38,2.4,zb,zf,J,wallItems);
- for(const y of[1.6,2.0])boxR(1.7,2.63,y,y+0.02,zb,zf,J,wallItems),shelfRun(1.7,2.63,y+0.02);
- boxR(1.7,2.63,0,0.42,3.05,zf,J);                                   // bench base with storage
- boxR(1.72,2.61,0.2,0.22,3.04,3.05,WLINE);
- boxR(1.71,2.62,0.42,0.5,3.06,zf,M('#d7a64a'));                     // seat cushion
- boxR(1.75,2.58,0.5,0.85,3.42,zf,M('#ede6d9'));                     // back cushion
- boxR(1.45,1.7,0,1.0,zb,zf,J); boxR(2.63,2.88,0,1.0,zb,zf,J);         // low cupboards (visible with low walls)
+ const shelfRun=(x1,x2,y,zs,maxH)=>{zs=zs||zb;let x=x1+0.02,i=Math.floor(y*7+x1*13);while(x<x2-0.05){const w=0.03+((i*37)%5)*0.008;let h=0.2+((i*13)%4)*0.03;if(maxH)h=Math.min(h,maxH);
+   if(x+w>x2-0.02)break;boxR(x,x+w,y,y+h,zs+0.03,zs+0.25,M(books[i%books.length]),wallItems);x+=w+0.004;i++;}};
+ const bench=(x1,x2,divs,zfr)=>{                                   // bench with bookshelves underneath
+   boxR(x1,x2,0.85,0.89,zfr,zf,J,wallItems);
+   boxR(x1,x2,0,0.03,zfr,zf,J,wallItems);boxR(x1,x2,0.45,0.47,zfr,zf,J,wallItems);
+   boxR(x1,x1+0.02,0,0.85,zfr,zf,J,wallItems);boxR(x2-0.02,x2,0,0.85,zfr,zf,J,wallItems);
+   for(const x of divs)boxR(x-0.01,x+0.01,0,0.85,zfr,zf,J,wallItems);
+   const xs=[x1+0.02,...divs,x2-0.02];
+   for(let i=0;i<xs.length-1;i++){shelfRun(xs[i],xs[i+1],0.03,zfr,0.36);shelfRun(xs[i],xs[i+1],0.47,zfr,0.33);}};
+ const DOOR_CLEAR=1.48;                                            // the front door (0.8 m leaf) swings flat to the wall up to here
+ const HALL_W=2.96, HALL_E=3.77;                                   // edges of the hallway door frame
+ // --- book nook run
+ bench(DOOR_CLEAR,HALL_W,[2.22],3.16);
+ boxR(DOOR_CLEAR,HALL_W,1.65,1.67,zb,zf,J,wallItems);               // lower of the two shelves (clear of the door)
+ boxR(0.7,HALL_W,2.05,2.08,zb,zf,J,wallItems);boxR(0.7,HALL_W,2.38,2.4,zb,zf,J,wallItems);  // upper shelf runs over the door
+ boxR(DOOR_CLEAR,DOOR_CLEAR+0.02,1.65,2.05,zb,zf,J,wallItems);
+ for(const x of[2.21,HALL_W-0.02])boxR(x,x+0.02,1.65,2.4,zb,zf,J,wallItems);
+ shelfRun(DOOR_CLEAR+0.02,2.21,1.67);shelfRun(2.23,HALL_W-0.02,1.67);
+ shelfRun(0.72,2.21,2.08,zb,0.29);shelfRun(2.23,HALL_W-0.02,2.08,zb,0.29);
+ cyl(0.1,0.07,0.04,2.5,0.89,3.36,M('#2f6f6a',{roughness:0.4}),wallItems);           // key bowl
+ boxR(2.46,2.52,0.93,0.94,3.33,3.4,STEEL,wallItems);boxR(2.5,2.55,0.93,0.945,3.36,3.39,M('#3a3a3a'),wallItems);
+ boxR(1.85,2.11,0.89,0.92,3.25,3.45,M('#e7ddcb'),wallItems);                         // letters
+ // --- shelving above the front door, along the side wall
+ const xb=0.7,xf=1.04,shelfRunZ=(z1,z2,y)=>{let z=z1+0.02,i=Math.floor(y*11)+3;while(z<z2-0.05){const w=0.03+((i*37)%5)*0.008,h=Math.min(0.29,0.2+((i*13)%4)*0.03);
+   if(z+w>z2-0.02)break;boxR(xb+0.03,xb+0.25,y,y+h,z,z+w,M(books[i%books.length]),wallItems);z+=w+0.004;i++;}};
+ boxR(xb,xf,2.05,2.08,2.45,zb,J,wallItems);boxR(xb,xf,2.38,2.4,2.45,zb,J,wallItems);boxR(xb,xf,2.05,2.4,2.45,2.47,J,wallItems);
+ shelfRunZ(2.47,3.2,2.08);
+ // --- bridge shelf over the hallway entrance, frame edge to frame edge
+ boxR(HALL_W,HALL_E,2.05,2.08,zb,zf,J,wallItems);boxR(HALL_W,HALL_E,2.38,2.4,zb,zf,J,wallItems);shelfRun(HALL_W,HALL_E,2.08,zb,0.29);
+ // --- beside the fridge: shelves from the hallway frame edge; bench as deep as the fridge and its timber panel
+ bench(HALL_E,4.44,[],2.88);
+ boxR(HALL_E,HALL_E+0.02,1.65,2.4,zb,zf,J,wallItems);
+ for(const y of[1.65,2.05])boxR(HALL_E,4.44,y,y+0.02,zb,zf,J,wallItems);
+ boxR(HALL_E,4.44,2.38,2.4,zb,zf,J,wallItems);
+ const bowl=(x,y,z,r,col)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,24,10,0,Math.PI*2,Math.PI/2,Math.PI/2),M(col,{roughness:0.4,side:THREE.DoubleSide}));m.position.set(x,y+r,z);m.castShadow=true;wallItems.add(m);
+   const f=new THREE.Mesh(new THREE.CylinderGeometry(r*0.4,r*0.4,0.008,16),M(col));f.position.set(x,y+0.004,z);wallItems.add(f);};
+ const bauble=(x,y,z,r,col,met)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,18,12),M(col,{metalness:met||0.3,roughness:0.2}));m.position.set(x,y+r,z);m.castShadow=true;wallItems.add(m);};
+ const penguin=(x,y,z,s)=>{const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(s);
+   const sp=new THREE.SphereGeometry(1,20,14),Bk=M('#1c1d21',{roughness:0.25}),Wt=M('#f6f4ef',{roughness:0.25}),Or=M('#e88a2e',{roughness:0.4});
+   const a=(mat,px,py,pz,sx,sy,sz)=>{const m=new THREE.Mesh(sp,mat);m.position.set(px,py,pz);m.scale.set(sx,sy,sz);m.castShadow=true;g.add(m);};
+   a(Bk,0,0.085,0,0.055,0.085,0.05);a(Wt,0,0.08,-0.022,0.042,0.068,0.035);a(Bk,0,0.18,0,0.034,0.034,0.032);
+   a(Wt,-0.013,0.185,-0.026,0.007,0.007,0.004);a(Wt,0.013,0.185,-0.026,0.007,0.007,0.004);
+   a(Or,0,0.175,-0.04,0.009,0.007,0.018);a(Or,-0.02,0.005,-0.02,0.018,0.005,0.025);a(Or,0.02,0.005,-0.02,0.018,0.005,0.025);
+   a(Bk,-0.055,0.09,0,0.012,0.05,0.03);a(Bk,0.055,0.09,0,0.012,0.05,0.03);
+   const op=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.02,12),M('#111'));op.position.set(0,0.215,0);g.add(op);
+   wallItems.add(g);};
+ shelfRun(HALL_E+0.02,4.06,2.07,zb,0.29);penguin(4.2,2.07,3.36,1.0);bauble(4.35,2.07,3.33,0.035,'#c9a227',0.7);
+ bowl(3.92,1.67,3.36,0.08,'#2f6f6a');bauble(3.89,1.69,3.36,0.03,'#d9772b',0.5);bauble(3.95,1.7,3.38,0.028,'#c9a227',0.7);
+ penguin(4.15,1.67,3.38,0.85);penguin(4.32,1.67,3.3,0.65);
+ bowl(4.2,0.89,3.15,0.1,'#e9dccb');bauble(4.17,0.9,3.14,0.032,'#3d5a80',0.4);bauble(4.24,0.9,3.17,0.03,'#c4683f',0.4);
+ (function(){cyl(0.06,0.05,0.1,3.9,0.89,3.3,M('#c0704a'));const f=new THREE.Mesh(new THREE.IcosahedronGeometry(0.08,1),M('#5c9450'));f.position.set(3.9,1.05,3.3);wallItems.add(f);})();
+ boxR(4.44,4.46,0,2.46,2.88,3.54,J);                                 // timber panel on the fridge's right-hand side
 })();
 // sliding-door handles at the centre: the two middle panels part to the left and right
 for(const x of[2.6,2.7])for(const z of[0.06,-0.06])boxR(x-0.015,x+0.015,0.95,1.2,z-0.02,z+0.02,BLACK,wallItems);
+// light switch beside the front door, on the wall between the door and the day bed
+boxR(0.705,0.713,1.05,1.165,2.52,2.59,WHITE);boxR(0.713,0.72,1.09,1.13,2.54,2.57,M('#e6e6e4'));
 // split-system AC head (TV and corner cabinet removed)
 boxR(0.1,0.9,1.95,2.25,0.1,0.32,WHITE,wallItems);
-// open shelving right of the fridge, in the joinery timber, with plants
-(function(){const x1=3.92,x2=4.46,zb=3.2,zf=3.54;
- boxR(x1,x1+0.025,0,2.2,zb,zf,WOOD);boxR(x2-0.025,x2,0,2.2,zb,zf,WOOD);
- const ys=[0.05,0.5,0.9,1.3,1.7,2.17];for(const y of ys)boxR(x1,x2,y,y+0.03,zb,zf,WOOD);
- const leaf=[M('#4f8a4a'),M('#6aa35a'),M('#3e7540')],pot=[M('#d9c8b0'),M('#c0704a'),M('#f2efe8'),M('#3d3d3d')];
- const plant=(x,y,z,r,k,trail)=>{cyl(0.07,0.055,0.12,x,y,z,pot[k%4]);
-   const f=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),leaf[k%3]);f.position.set(x,y+0.12+r*0.7,z);f.castShadow=true;furn.add(f);
-   if(trail)for(let i=0;i<3;i++){const t=new THREE.Mesh(new THREE.IcosahedronGeometry(0.05,0),leaf[(k+i)%3]);t.position.set(x+(i-1)*0.06,y-0.05-i*0.09,z+0.1);furn.add(t);}};
- plant(4.06,0.53,3.37,0.1,0,false);plant(4.3,0.93,3.37,0.12,1,true);plant(4.1,1.33,3.37,0.09,2,false);
- plant(4.32,1.73,3.37,0.08,3,true);plant(4.12,2.2,3.37,0.13,4,true);
- boxR(4.22,4.42,0.53,0.75,3.25,3.5,M('#e7ddcb'));                               // books / baskets
- boxR(3.97,4.2,0.93,1.05,3.25,3.5,M('#cdb48e'));
-})();
+// timber shelves below the aircon
+for(const y of[1.25,1.6])boxR(0.12,0.86,y,y+0.03,0.1,0.34,WOOD,wallItems);
+boxR(0.16,0.42,1.28,1.48,0.13,0.31,M('#3d5a80'),wallItems);boxR(0.42,0.5,1.28,1.45,0.13,0.31,M('#e2a23b'),wallItems);boxR(0.5,0.56,1.28,1.5,0.13,0.31,M('#c4683f'),wallItems);
+cyl(0.06,0.05,0.1,0.72,1.28,0.22,M('#f2efe8'),wallItems);
+(function(){const f=new THREE.Mesh(new THREE.IcosahedronGeometry(0.08,1),M('#5c9450'));f.position.set(0.72,1.44,0.22);wallItems.add(f);
+ const v=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.06,0.18,16),M('#b9d8d6'));v.position.set(0.3,1.72,0.22);wallItems.add(v);})();
+boxR(0.5,0.78,1.63,1.68,0.14,0.3,M('#e7ddcb'),wallItems);
 // ceiling spot fittings
 for(const[x,z]of[[2.0,1.6]]){cyl(0.12,0.12,0.03,x,2.44,z,STEEL,wallItems);}
 
 // ---------- Kitchen ----------
-const CAB=WOOD,TOP=M('#f2f1ee',{roughness:0.3}),DIV=WLINE;
-boxR(4.5,6.4,0,0.86,0.1,0.68,CAB);boxR(4.5,6.4,0.86,0.9,0.1,0.7,TOP);      // north run
+const CAB=WOOD,TOP=M('#dfe2e4',{metalness:0.35,roughness:0.3}),DIV=WLINE;
+boxR(4.72,6.4,0,0.86,0.1,0.68,CAB);boxR(4.72,6.4,0.86,0.9,0.1,0.7,TOP);    // north run
 for(const x of[5.1,5.7])boxR(x-0.003,x+0.003,0.05,0.82,0.68,0.685,DIV);
-boxR(5.82,6.4,0,0.86,0.68,2.9,CAB);boxR(5.8,6.4,0.86,0.9,0.68,2.9,TOP);    // east run
+boxR(5.82,6.4,0,0.86,0.68,0.98,CAB);boxR(5.82,6.4,0,0.86,1.52,2.9,CAB);   // east run
+boxR(5.82,6.4,0,0.66,0.98,1.52,CAB);boxR(5.82,5.86,0.66,0.86,0.98,1.52,CAB); // under the sink
+boxR(5.8,6.4,0.86,0.9,0.68,0.98,TOP);boxR(5.8,6.4,0.86,0.9,1.52,2.9,TOP);
+boxR(5.8,5.92,0.86,0.9,0.98,1.52,TOP);boxR(6.3,6.4,0.86,0.9,0.98,1.52,TOP);
 boxR(5.79,5.82,0.06,0.82,1.45,2.05,STEEL);                                  // dishwasher, against the oven
 boxR(5.79,5.82,0.1,0.78,2.05,2.65,BLACK);boxR(5.78,5.79,0.62,0.66,2.12,2.58,STEEL); // oven
 boxR(5.9,6.35,0.9,0.905,2.05,2.65,BLACK);                                  // cooktop
-boxR(5.92,6.3,0.84,0.905,1.0,1.5,M('#a9adb0',{metalness:0.7,roughness:0.3})); // sink, moved right
-cyl(0.012,0.012,0.3,6.32,0.9,1.25,STEEL);
-boxR(5.6,6.4,1.45,2.3,0.1,0.45,CAB,wallItems);                            // upper cupboards from the corner, window now beside them
-boxR(5.995,6.005,1.47,2.28,0.45,0.455,DIV,wallItems);
+// sink: recessed bowl, darker inside, with a drain
+(function(){const SI=M('#7a7f84',{metalness:0.4,roughness:0.35}),SF=M('#666b70',{metalness:0.4,roughness:0.4}),RIM=M('#d3d6d8',{metalness:0.4,roughness:0.25});
+ boxR(5.9,6.32,0.9,0.907,0.98,1.01,RIM);boxR(5.9,6.32,0.9,0.907,1.49,1.52,RIM);boxR(5.9,5.93,0.9,0.907,1.01,1.49,RIM);boxR(6.29,6.32,0.9,0.907,1.01,1.49,RIM);
+ boxR(5.92,5.93,0.69,0.9,1.0,1.5,SI);boxR(6.29,6.3,0.69,0.9,1.0,1.5,SI);boxR(5.92,6.3,0.69,0.9,1.0,1.01,SI);boxR(5.92,6.3,0.69,0.9,1.49,1.5,SI);
+ boxR(5.92,6.3,0.68,0.69,1.0,1.5,SF);
+ cyl(0.04,0.04,0.004,6.11,0.69,1.25,M('#a7adb1',{metalness:0.6,roughness:0.3}));cyl(0.026,0.026,0.005,6.11,0.69,1.25,BLACK);
+ boxR(6.084,6.136,0.695,0.697,1.247,1.253,STEEL);boxR(6.107,6.113,0.695,0.697,1.224,1.276,STEEL);
+})();
+cyl(0.014,0.016,0.3,6.35,0.9,1.25,STEEL);boxR(6.17,6.36,1.17,1.19,1.24,1.26,STEEL);cyl(0.01,0.01,0.05,6.18,1.12,1.25,STEEL);   // mixer tap with spout over the bowl
+boxR(5.6,6.4,1.45,2.45,0.1,0.45,CAB,wallItems);                           // upper cupboards from the corner (to 2.45 m, 35 cm deep)
+boxR(5.995,6.005,1.47,2.43,0.45,0.455,DIV,wallItems);
 boxR(5.6,6.4,1.43,1.45,0.1,0.45,M('#fff4d6',{emissive:'#fff1c9',emissiveIntensity:0.4}),wallItems);
 // fridge: stainless, fridge door above, freezer drawer below
 (function(){const SS=M('#b3b8bb',{metalness:0.6,roughness:0.3}),SS2=M('#c3c7ca',{metalness:0.6,roughness:0.25}),GAP=M('#2a2c2e'),H=M('#d9dcde',{metalness:0.8,roughness:0.2});
  boxR(4.52,5.16,0.08,1.85,2.93,3.52,SS);                       // cabinet
  boxR(4.54,5.14,0,0.08,2.95,3.0,GAP);                          // kick plate
- boxR(4.525,5.155,0.09,0.66,2.88,2.93,SS2);                    // freezer drawer
+ boxR(4.525,5.155,0.09,0.66,2.88,2.93,SS2);                    // freezer door
  boxR(4.525,5.155,0.68,1.84,2.88,2.93,SS2);                    // fridge door
  boxR(4.525,5.155,0.66,0.68,2.885,2.93,GAP);                   // seam
- boxR(4.62,5.06,0.55,0.575,2.84,2.86,H);                       // freezer handle (horizontal)
- for(const x of[4.65,5.03])boxR(x-0.01,x+0.01,0.55,0.575,2.86,2.88,H);
+ boxR(5.06,5.085,0.2,0.58,2.84,2.86,H);                        // freezer handle, left side
+ for(const y of[0.23,0.55])boxR(5.06,5.085,y-0.01,y+0.01,2.86,2.88,H);
  boxR(5.06,5.085,0.85,1.55,2.84,2.86,H);                       // fridge handle (vertical)
  for(const y of[0.88,1.52])boxR(5.06,5.085,y-0.01,y+0.01,2.86,2.88,H);
  boxR(4.6,4.75,1.7,1.76,2.875,2.88,M('#1c1d1f'));               // control panel
 })();
-boxR(4.5,5.18,1.95,2.45,3.05,3.54,CAB,wallItems);                          // cupboards above fridge
-boxR(4.84,4.845,1.97,2.43,3.04,3.05,DIV,wallItems);
-boxR(5.2,6.4,0,0.86,2.94,3.54,CAB);boxR(5.18,6.4,0.86,0.9,2.9,3.54,TOP);  // bench left of fridge
+boxR(4.46,5.2,1.95,2.45,2.88,3.54,CAB,wallItems);                          // cupboards above fridge, flush with the fridge front
+boxR(4.83,4.836,1.97,2.43,2.875,2.88,DIV,wallItems);
+boxR(5.165,5.195,0,1.95,2.88,3.54,WOOD);                                    // timber panel on the fridge's left-hand side
+boxR(5.2,6.4,0,0.86,2.94,3.54,CAB);boxR(5.195,6.4,0.86,0.9,2.9,3.54,TOP);  // bench left of fridge
 boxR(5.797,5.803,0.05,0.82,2.93,2.94,DIV);
-boxR(5.2,6.4,1.45,2.2,3.2,3.54,CAB,wallItems);                            // cupboards above bench
-boxR(5.8,5.806,1.47,2.18,3.19,3.2,DIV,wallItems);
-boxR(5.2,6.4,1.43,1.45,3.2,3.54,M('#fff4d6',{emissive:'#fff1c9',emissiveIntensity:0.4}),wallItems);
+boxR(5.2,6.4,1.45,2.45,2.88,3.54,CAB,wallItems);                           // cupboards beside, same depth as the fridge
+for(const x of[5.6,6.0])boxR(x-0.003,x+0.003,1.47,2.43,2.875,2.88,DIV,wallItems);
+boxR(4.44,6.4,2.43,2.46,2.87,3.54,CAB,wallItems);                          // continuous top panel over fridge and bench
+boxR(5.2,6.4,1.43,1.45,2.88,3.54,M('#fff4d6',{emissive:'#fff1c9',emissiveIntensity:0.4}),wallItems);
 // slim peninsula bench with a built-in banquette seat on the living side
 boxR(4.72,5.05,0,0.86,0.68,1.75,CAB);boxR(4.7,5.08,0.86,0.9,0.68,1.77,TOP);
-boxR(4.25,4.72,0,0.42,0.7,1.75,CAB);                                       // banquette base (storage)
-boxR(4.26,4.7,0.2,0.21,0.69,0.7,DIV);
-boxR(4.26,4.71,0.42,0.5,0.72,1.73,M('#d7a64a'));                           // seat cushion
-boxR(4.62,4.71,0.5,0.84,0.74,1.71,M('#ede6d9'));                           // back cushion against the bench
-// dining table + chairs
-boxR(3.4,4.2,0.72,0.76,0.62,1.82,TIMBER);
-for(const[x,z]of[[3.45,0.67],[4.15,0.67],[3.45,1.77],[4.15,1.77]])boxR(x-0.025,x+0.025,0,0.72,z-0.025,z+0.025,TIMBER);
-for(const z of[0.92,1.52]){const c=M('#2f3b38',{roughness:0.6});
-  boxR(3.24,3.66,0.44,0.48,z-0.2,z+0.2,c);boxR(3.24,3.28,0.48,0.88,z-0.2,z+0.2,c);
-  for(const[dx,dz]of[[3.26,-0.18],[3.64,-0.18],[3.26,0.18],[3.64,0.18]])boxR(dx-0.012,dx+0.012,0,0.44,z+dz-0.012,z+dz+0.012,c);}
+// L-shaped built-in dining bench: along the window and back against the slim bench
+boxR(3.35,4.72,0,0.42,0.12,0.57,CAB);                                      // window leg (base with storage)
+boxR(4.25,4.72,0,0.42,0.57,1.75,CAB);                                      // side leg
+boxR(3.37,4.23,0.2,0.21,0.565,0.575,DIV);boxR(4.245,4.25,0.2,0.21,0.59,1.73,DIV);
+boxR(3.36,4.71,0.42,0.5,0.2,0.56,COBALT);                                  // seat cushions
+boxR(4.26,4.71,0.42,0.5,0.56,1.73,COBALT);
+boxR(3.38,4.71,0.5,0.86,0.13,0.22,COBALT2);                                // back cushions
+boxR(4.62,4.71,0.5,0.84,0.22,1.71,COBALT2);
+// round pedestal dining table
+cyl(0.5,0.5,0.04,3.78,0.72,1.08,TIMBER);
+cyl(0.06,0.07,0.72,3.78,0,1.08,TIMBER);cyl(0.24,0.26,0.03,3.78,0,1.08,TIMBER);
+// two chairs, tucked in
+function diningChair(cx,cz,ry){   // Wishbone-style (Wegner CH24): steam-bent top rail, Y-shaped back splat, woven cord seat
+ const c=M('#dcbf94',{roughness:0.55}),cord=M('#f5f3ee',{roughness:1}),g=new THREE.Group();g.position.set(cx,0,cz);g.rotation.y=ry;
+ const add=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;g.add(m);return m;};
+ // woven seat, slightly wider at the front, with frame rails
+ const seat=new THREE.Shape();seat.moveTo(-0.19,-0.2);seat.lineTo(0.2,-0.24);seat.lineTo(0.2,0.24);seat.lineTo(-0.19,0.2);seat.lineTo(-0.19,-0.2);
+ const sg=new THREE.ExtrudeGeometry(seat,{depth:0.035,bevelEnabled:false});sg.rotateX(Math.PI/2);add(sg,cord,0,0.455,0);
+ for(let i=-4;i<=4;i++){const l=add(new THREE.BoxGeometry(0.39,0.004,0.004),M('#e0dcd2'),0.005,0.456,i*0.05);}
+ // front legs
+ for(const s of[-1,1])add(new THREE.CylinderGeometry(0.017,0.015,0.44,10),c,0.19,0.22,0.225*s);
+ // rear legs rising and leaning back to carry the top rail
+ for(const s of[-1,1]){const lg=add(new THREE.CylinderGeometry(0.017,0.019,0.73,10),c,-0.2,0.365,0.19*s);lg.rotation.z=0.07;}
+ // stretchers
+ for(const s of[-1,1])add(new THREE.BoxGeometry(0.38,0.015,0.015),c,0,0.16,0.21*s);
+ // curved top rail that wraps round to form the arms
+ const tg=new THREE.Group();tg.position.set(-0.02,0.71,0);tg.rotation.y=-0.42*Math.PI;
+ const tr=new THREE.Mesh(new THREE.TorusGeometry(0.215,0.017,8,40,1.16*Math.PI),c);tr.rotation.x=Math.PI/2;tr.castShadow=true;tg.add(tr);g.add(tg);
+ // Y-shaped "wishbone" splat
+ for(const s of[-1,1]){const cv=new THREE.CatmullRomCurve3([new THREE.Vector3(-0.19,0.47,0),new THREE.Vector3(-0.205,0.56,0.012*s),new THREE.Vector3(-0.222,0.65,0.06*s),new THREE.Vector3(-0.232,0.71,0.085*s)]);
+   add(new THREE.TubeGeometry(cv,16,0.012,8,false),c,0,0,0);}
+ furn.add(g);}
+diningChair(3.17,1.12,0);                 // west side, facing the bench
+diningChair(3.82,1.72,Math.PI/2);         // south side, facing the window
 // PH5-style pendant in cobalt blue, over the dining table
 (function(x,z){const B=M('#0a3a94',{roughness:0.35,side:THREE.DoubleSide}),B2=M('#1f4fb0',{roughness:0.3,side:THREE.DoubleSide}),Rd=M('#c9453a',{side:THREE.DoubleSide});
  const shade=(rt,rb,h,y,mat)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,40,1,true),mat);m.position.set(x,y,z);m.castShadow=true;wallItems.add(m);};
  shade(0.05,0.25,0.11,1.68,B);shade(0.1,0.19,0.06,1.59,B2);shade(0.07,0.13,0.05,1.53,B);shade(0.09,0.035,0.035,1.49,Rd);
  const bulb=new THREE.Mesh(new THREE.SphereGeometry(0.04,12,8),M('#fff8e0',{emissive:'#fff1c4',emissiveIntensity:0.8}));bulb.position.set(x,1.56,z);wallItems.add(bulb);
- cyl(0.004,0.004,0.77,x,1.73,z,BLACK,wallItems);cyl(0.05,0.05,0.02,x,2.48,z,B,wallItems);})(3.8,1.22);
+ cyl(0.004,0.004,0.77,x,1.73,z,BLACK,wallItems);cyl(0.05,0.05,0.02,x,2.48,z,B,wallItems);})(3.78,1.08);
 cyl(0.12,0.12,0.03,5.3,2.44,1.8,STEEL,wallItems);                            // kitchen downlight back in place
 
 // ---------- Bathroom ----------
@@ -356,19 +452,19 @@ cyl(0.18,0.18,0.01,2.545,0.42,4.69,M('#c8d1d6'));
 
 // ---------- 2nd bedroom: couch under the window, desk, split wardrobe (3.2 x 2.4) ----------
 (function(){const F=M('#7d8f86',{roughness:0.9}),F2=M('#86988f');
- boxR(1.6,2.9,0.002,0.012,6.15,6.95,M('#e9dcc6'));                      // rug
+ boxR(1.75,2.95,0.002,0.012,6.05,6.85,M('#e9dcc6'));                     // rug
  // couch along the west wall, under the (high) window, facing east
  boxR(0.72,1.55,0.12,0.42,5.88,7.63,F);boxR(0.7,0.92,0.12,0.84,5.88,7.63,F);
  boxR(0.72,1.55,0.12,0.6,5.83,6.0,F);boxR(0.72,1.55,0.12,0.6,7.51,7.68,F);
  boxR(0.92,1.52,0.42,0.52,6.01,6.74,F2);boxR(0.92,1.52,0.42,0.52,6.77,7.5,F2);
  for(const[x,z]of[[0.74,5.85],[1.53,5.85],[0.74,7.66],[1.53,7.66]])boxR(x-0.02,x+0.02,0,0.12,z-0.02,z+0.02,BLACK);
  boxR(0.95,1.08,0.5,0.82,6.13,6.48,MUSTARD);
- // desk on the back wall, between couch and wardrobe
- boxR(1.75,3.1,0.72,0.75,7.15,7.72,TIMBER);
- for(const[x,z]of[[1.78,7.18],[3.07,7.18],[1.78,7.69],[3.07,7.69]])boxR(x-0.02,x+0.02,0,0.72,z-0.02,z+0.02,TIMBER);
- boxR(2.15,2.7,0.78,1.12,7.6,7.62,BLACK);boxR(2.4,2.45,0.75,0.78,7.62,7.68,BLACK);
- cyl(0.2,0.2,0.05,2.42,0.45,6.85,M('#3f3f3f'));cyl(0.03,0.03,0.4,2.42,0.05,6.85,STEEL);
- boxR(2.25,2.6,0.48,0.95,6.63,6.67,M('#3f3f3f'));
+ // desk tucked into the far corner (back wall / side wall), away from the couch
+ boxR(2.4,3.76,0.72,0.75,7.12,7.72,TIMBER);
+ for(const[x,z]of[[2.43,7.15],[3.73,7.15],[2.43,7.69],[3.73,7.69]])boxR(x-0.02,x+0.02,0,0.72,z-0.02,z+0.02,TIMBER);
+ boxR(2.8,3.35,0.78,1.12,7.6,7.62,BLACK);boxR(3.05,3.1,0.75,0.78,7.62,7.68,BLACK);
+ cyl(0.2,0.2,0.05,3.07,0.45,6.82,M('#3f3f3f'));cyl(0.03,0.03,0.4,3.07,0.05,6.82,STEEL);
+ boxR(2.9,3.25,0.48,0.95,6.6,6.64,M('#3f3f3f'));
 })();
 
 // ---------- Artwork ----------
@@ -401,6 +497,10 @@ picture('z',3.83+0.065,1,6.95,1.45,0.5,0.65,'#f2efe8',53,PAL[4]);
 picture('z',3.83-0.065,-1,6.35,1.55,0.55,0.7,'#2b2b2b',67,PAL[5]);
 picture('z',3.83-0.065,-1,7.05,1.7,0.4,0.4,'#b67a4b',71,PAL[0]);
 picture('z',3.83-0.065,-1,7.05,1.2,0.4,0.4,'#2b2b2b',83,PAL[4]);
+picture('x',7.8-0.105,-1,1.9,1.5,0.6,0.8,'#b67a4b',101,PAL[2]);            // back wall, beside the desk
+picture('x',7.8-0.105,-1,3.1,1.55,0.5,0.35,'#2b2b2b',113,PAL[3]);          // above the desk
+picture('x',5.55+0.205,1,1.15,1.55,0.45,0.6,'#f2efe8',127,PAL[1]);         // on the jutting wall, above the couch arm
+picture('x',5.55+0.205,1,1.85,1.65,0.3,0.4,'#2b2b2b',131,PAL[5]);
 // 2nd bedroom: wall-to-wall shelf above the door, with a small display stand
 boxR(2.3,3.77,2.12,2.15,5.41,5.67,WOOD,wallItems);
 for(const x of[2.5,3.6])boxR(x-0.01,x+0.01,2.04,2.12,5.41,5.6,PULL,wallItems);
@@ -435,13 +535,28 @@ for(const x of[2.5,3.6])boxR(x-0.01,x+0.01,2.04,2.12,5.41,5.6,PULL,wallItems);
  // sheer, billowy curtains across the balcony doors/windows
  boxR(1.05,4.5,2.4,2.42,0.2,0.23,BR,wallItems);                     // track
  const SHEER=new THREE.MeshStandardMaterial({color:'#ffffff',transparent:true,opacity:0.58,roughness:1,side:THREE.DoubleSide,depthWrite:false});
- const panel=(x1,x2,phase,billow)=>{const w=x2-x1,h=2.36;const g=new THREE.PlaneGeometry(w,h,90,24);const pos=g.attributes.position;
+ const panel=(x1,x2,phase,billow,bot=0.02,zc=0.25,pa=0.038)=>{const w=x2-x1,h=2.38-bot;const g=new THREE.PlaneGeometry(w,h,90,24);const pos=g.attributes.position;
    for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i),t=(h/2-y)/h; // t: 0 top -> 1 bottom
-     const pleat=0.038*Math.sin((x+w/2)*26+phase);
+     const pleat=pa*Math.sin((x+w/2)*26+phase);
      const swell=billow*Math.pow(t,1.6)*Math.sin(Math.PI*((x+w/2)/w))*(1+0.25*Math.sin(x*4+phase));
      pos.setZ(i,pleat+swell);pos.setX(i,x+0.03*t*Math.sin(y*3+phase));}
-   g.computeVertexNormals();const m=new THREE.Mesh(g,SHEER);m.position.set((x1+x2)/2,0.02+h/2,0.25);wallItems.add(m);};
- panel(1.1,2.8,0.3,0.06);panel(2.75,4.45,1.7,0.11);
+   g.computeVertexNormals();const m=new THREE.Mesh(g,SHEER);m.position.set((x1+x2)/2,bot+h/2,zc);wallItems.add(m);};
+ panel(1.1,2.8,0.3,0.015,0.02,0.205,0.02);   // close to the glass, clear of the orange chair
+ panel(2.75,3.4,1.7,0.08);panel(3.38,4.45,2.4,0.03,0.95);   // shorter over the window bench
+})();
+
+// 2nd bedroom: open shelves between the jutting wall and the door, up to the shelf over the door
+(function(){const x1=2.31,x2=2.93,zb=5.41,zf=5.71,books=['#3d5a80','#e2a23b','#c4683f','#2f6f6a','#e7ddcb','#8a3f3f'];
+ boxR(x2-0.02,x2,0,2.12,zb,zf,WOOD,wallItems);
+ for(const y of[0.02,0.42,0.82,1.22,1.62])boxR(x1,x2,y,y+0.025,zb,zf,WOOD,wallItems);
+ const run=(a,b,y)=>{let x=a,i=Math.floor(y*9);while(x<b){const w=0.03+((i*37)%5)*0.008,h=0.2+((i*13)%4)*0.03;if(x+w>b)break;
+   boxR(x,x+w,y,y+h,zb+0.04,zb+0.26,M(books[i%books.length]),wallItems);x+=w+0.004;i++;}};
+ run(2.33,2.62,0.045);run(2.33,2.9,0.445);run(2.6,2.9,1.245);run(2.33,2.75,1.645);
+ boxR(2.65,2.88,0.045,0.27,zb+0.04,zb+0.28,M('#c9a46b',{roughness:1}),wallItems);
+ cyl(0.07,0.055,0.12,2.45,0.845,5.56,M('#c0704a'),wallItems);
+ const f=new THREE.Mesh(new THREE.IcosahedronGeometry(0.1,1),M('#5c9450'));f.position.set(2.45,1.04,5.56);wallItems.add(f);
+ boxR(2.7,2.88,0.845,0.98,5.46,5.66,M('#e7ddcb'),wallItems);
+ boxR(2.35,2.55,1.245,1.27,5.45,5.65,M('#3d5a80'),wallItems);boxR(2.37,2.53,1.27,1.29,5.46,5.64,M('#e2a23b'),wallItems);
 })();
 
 // ---------- Bedroom 2 (2.6 x 4.3) ----------
@@ -482,6 +597,42 @@ boxR(4.6,5.8,1.25,1.8,7.68,7.7,M('#3f6f9e'),wallItems); // print above bed
  cyl(0.025,0.025,0.03,4.95,1.08,-0.17,BLACK,scene);
 })();
 
+// tomato plants in pots, staked, at the west end of the balcony
+(function(){const POT=M('#b8653f',{roughness:0.8}),SOIL=M('#4a3a2c'),STK=M('#9c7b52'),LF=[M('#3f7a3a'),M('#4f8f45'),M('#36692f')];
+ const RED=M('#d1322a',{roughness:0.4}),ORG=M('#e2762b',{roughness:0.4}),GRN=M('#8fbf4f',{roughness:0.4});
+ let k=0;const rnd=()=>{k=(k*9301+49297)%233280;return k/233280;};
+ const tomato=(x,z,h)=>{cyl(0.17,0.13,0.3,x,0,z,POT,scene);cyl(0.16,0.16,0.01,x,0.29,z,SOIL,scene);
+   for(const[dx,dz]of[[-0.07,-0.05],[0.07,-0.04],[0,0.08]])boxR(x+dx-0.008,x+dx+0.008,0.25,0.3+h,z+dz-0.008,z+dz+0.008,STK,scene);
+   for(let i=0;i<9;i++){const y=0.42+(i/8)*(h-0.15),r=0.1+0.05*rnd();
+     const f=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),LF[i%3]);f.position.set(x+(rnd()-0.5)*0.22,y,z+(rnd()-0.5)*0.22);f.castShadow=true;scene.add(f);}
+   for(let i=0;i<11;i++){const y=0.45+rnd()*(h-0.3),c=[RED,RED,RED,ORG,GRN][i%5];
+     const t=new THREE.Mesh(new THREE.SphereGeometry(0.03+0.012*rnd(),10,8),c);t.position.set(x+(rnd()-0.5)*0.3,y,z+(rnd()-0.5)*0.3);t.castShadow=true;scene.add(t);}};
+ tomato(1.15,-0.72,0.95);tomato(1.6,-0.78,0.85);tomato(1.12,-0.3,0.75);
+})();
+// ringtail possum on the balustrade, tail wrapped around the top rail
+(function(x){const g=new THREE.Group();g.position.set(x,1.0,-1.2);g.rotation.y=-0.25;
+ const FUR=M('#6e5a4e',{roughness:1}),RUF=M('#9a6b4f',{roughness:1}),BEL=M('#e8e0d4',{roughness:1}),DK=M('#2a2522',{roughness:1}),EYE=M('#0d0d0d',{roughness:0.2}),WH=M('#f4f1ec',{roughness:1});
+ const add=(geo,mat,px,py,pz,sx,sy,sz)=>{const m=new THREE.Mesh(geo,mat);m.position.set(px,py,pz);if(sx)m.scale.set(sx,sy,sz);m.castShadow=true;g.add(m);return m;};
+ const sph=new THREE.SphereGeometry(1,20,14);
+ add(sph,FUR,0,0.085,0,0.16,0.085,0.085);                 // body
+ add(sph,RUF,-0.02,0.1,0,0.12,0.07,0.08);                  // rufous back
+ add(sph,BEL,0.01,0.06,0,0.13,0.05,0.07);                  // pale belly
+ add(sph,FUR,0.17,0.14,0.0,0.06,0.055,0.055);              // head
+ add(sph,FUR,0.225,0.125,0,0.035,0.03,0.03);               // snout
+ add(sph,DK,0.255,0.125,0,0.01,0.01,0.012);                // nose
+ for(const s of[-1,1]){
+   add(sph,EYE,0.205,0.155,0.032*s,0.012,0.012,0.012);     // eyes
+   add(sph,WH,0.19,0.175,0.038*s,0.014,0.008,0.01);        // white patch above the eye
+   add(sph,FUR,0.15,0.2,0.035*s,0.018,0.025,0.01);         // round ears
+   add(sph,WH,0.148,0.192,0.042*s,0.008,0.012,0.004);      // white behind the ear
+   for(const lx of[0.1,-0.09])add(new THREE.CylinderGeometry(0.012,0.014,0.07,8),FUR,lx,0.02,0.03*s);}  // legs gripping the rail
+ // prehensile tail: dark, with a white tip, curling around the rail
+ const pts=[[-0.14,0.08,0],[-0.21,0.06,0],[-0.26,0.01,0.02],[-0.28,-0.04,0.035],[-0.29,-0.07,0.0],[-0.3,-0.055,-0.035],[-0.31,-0.01,-0.04],[-0.32,0.025,-0.01],[-0.33,0.02,0.03],[-0.34,-0.02,0.045]].map(p=>new THREE.Vector3(...p));
+ const curve=new THREE.CatmullRomCurve3(pts);
+ add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(curve.getPoints(40).slice(0,30)),40,0.017,8,false),DK,0,0,0);
+ add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(curve.getPoints(40).slice(29)),16,0.014,8,false),WH,0,0,0);
+ scene.add(g);})(2.25);
+
 // entrance balcony: solid wall from the front door past the bathroom and 2nd bedroom,
 // narrowing and continuing past the living-room window, with potted plants
 (function(){const W=M('#ebe7df'),CAP=M('#d9d4ca'),FL=M('#b9b4ab');
@@ -499,7 +650,7 @@ boxR(4.6,5.8,1.25,1.8,7.68,7.7,M('#3f6f9e'),wallItems); // print above bed
 
 // ---------- Surroundings: trees ----------
 (function(){const leaf=[M('#4f7a43'),M('#5d8a4c'),M('#3f6a3a')],trunk=M('#6b5440');
- const trees=[[1.5,-5.5,2.8],[5,-5,2.6],[8.5,-3,2.2],[-4,2,2.0],[10.5,3.5,2.3],[-3.5,8,1.8],[9.5,10,2.0],[3,12,2.4]];
+ const trees=[[1.5,-10.5,2.8],[5,-10,2.6],[8.5,-8,2.2],[-4,2,2.0],[10.5,3.5,2.3],[-3.5,8,1.8],[9.5,10,2.0],[3,12,2.4]];
  trees.forEach(([x,z,r],i)=>{cyl(0.15,0.2,r*1.6,x,-6,z,trunk,scene);
    const s=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),leaf[i%3]);s.position.set(x,-6+r*1.6+r*0.6,z);s.castShadow=true;scene.add(s);
    const s2=new THREE.Mesh(new THREE.IcosahedronGeometry(r*0.7,1),leaf[(i+1)%3]);s2.position.set(x+r*0.5,-6+r*1.6+r*1.2,z-r*0.3);scene.add(s2);});
@@ -536,7 +687,7 @@ const VIEWS=[
  ['Floor plan',[3.0,17.5,3.45],[3.0,0,3.4],'low'],
  ['Living',[3.5,1.65,3.1],[0.6,0.9,0.9],'full'],
  ['Kitchen & dining',[2.5,1.75,3.0],[5.2,1.2,0.9],'full'],
- ['Balcony',[2.0,1.75,1.4],[4.6,0.9,-0.7],'full'],
+ ['Balcony',[5.2,1.7,-0.15],[1.8,0.8,-0.9],'full'],
  ['2nd bedroom',[2.2,5.6,7.9],[2.2,0.3,6.5],'full'],
  ['Book nook',[2.6,1.5,0.9],[2.15,1.0,3.4],'full'],
  ['Main bedroom',[4.1,1.65,4.45],[5.4,0.6,7.6],'full'],
