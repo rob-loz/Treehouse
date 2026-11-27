@@ -60,7 +60,7 @@ const canvas=document.getElementById('c');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.outputEncoding=THREE.sRGBEncoding;
-renderer.shadowMap.enabled=false;   // shadows off
+renderer.shadowMap.enabled=true;   // soft shadows: strong ambient, weak sun
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 
 const scene=new THREE.Scene();
@@ -72,8 +72,8 @@ controls.enableDamping=true;controls.dampingFactor=0.08;
 controls.maxPolarAngle=Math.PI*0.49;controls.minDistance=0.3;controls.maxDistance=35;
 
 // Lights
-scene.add(new THREE.HemisphereLight('#ffffff','#b9b2a6',0.75));
-const sun=new THREE.DirectionalLight('#fff6e8',0.75);
+scene.add(new THREE.HemisphereLight('#ffffff','#b9b2a6',0.98));
+const sun=new THREE.DirectionalLight('#fff6e8',0.5);
 sun.position.set(-6,12,-5);sun.target.position.set(3.2,0,3.6);
 sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{left:-9,right:9,top:9,bottom:-9,near:1,far:40});
@@ -186,7 +186,7 @@ function buildWalls(H){
   door(2.9,4.5,0.75,[-0.94,-0.34],'#f7f7f5',dh); // bath
   door(3.75,5.35,0.8,[-0.34,0.94],'#f7f7f5',dh); // bedroom 1
   door(3.83,4.4,0.8,[0.94,0.34],'#f7f7f5',dh);  // bedroom 2
-  secDoor(dh);                                   // flyscreen security door, front
+  secDoor(dh);                                   // fly screen door, front
   if(version==='pro'){
   // wall finishes
   paintRoom(3.83,6.5,3.6,7.8,H,[{y0:0,y1:9,mat:M('#f7d3b5')}]);           // main bedroom: pastel apricot
@@ -249,27 +249,27 @@ function door(hx,hz,w,dir,color,h){
   const handle=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.02,0.06),STEEL);handle.position.set(w-0.08,1.0,0);if(h>1.0)p.add(handle);
   wallGroup.add(p);}
 
-// flyscreen security door on the front: outside the entry door, hinged on the left as seen from outside (north side), shown closed
-const MESHTEX=(function(){const c=document.createElement('canvas');c.width=c.height=8;const g=c.getContext('2d');g.strokeStyle='rgba(40,44,46,0.95)';g.lineWidth=1.4;
+// fly screen door on the front: hinged on the left as seen from outside (north side), swung open flat against the side wall of the entry recess
+const MESHTEX=(function(){const c=document.createElement('canvas');c.width=c.height=8;const g=c.getContext('2d');g.strokeStyle='rgba(70,76,80,0.55)';g.lineWidth=1.2;
   g.beginPath();g.moveTo(0,0.5);g.lineTo(8,0.5);g.moveTo(0.5,0);g.lineTo(0.5,8);g.stroke();
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;})();
 function secDoor(h){
-  const w=0.76,ft=0.05,th=0.04,FR=M('#34393c',{metalness:0.35,roughness:0.5});
-  const p=new THREE.Group();p.position.set(0.46,0,2.71);p.rotation.y=-Math.PI/2;   // hinge at z 2.71 (north = left from outside), leaf runs south
+  const w=0.76,ft=0.04,th=0.03,FR=M('#4a5155',{metalness:0.3,roughness:0.5});
+  const p=new THREE.Group();p.position.set(0.46,0,2.64);p.rotation.y=Math.PI;   // hinge at z 2.64 beside the recess wall; leaf swings out to run west along that wall
   const bar=(x1,x2,y1,y2)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(x2-x1,y2-y1,th),FR);m.position.set((x1+x2)/2,(y1+y2)/2,0);p.add(m);return m;};
-  bar(0,ft,0,h);bar(w-ft,w,0,h);bar(ft,w-ft,h-ft,h);bar(ft,w-ft,0,0.36);bar(ft,w-ft,0.94,1.0);   // stiles, top rail, kick panel, lock rail
-  const tex=MESHTEX.clone();tex.needsUpdate=true;tex.repeat.set((w-2*ft)/0.02,(h-ft-0.36)/0.02);
-  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w-2*ft,h-ft-0.36),new THREE.MeshStandardMaterial({map:tex,transparent:true,roughness:0.6,metalness:0.3,side:THREE.DoubleSide,depthWrite:false}));
-  mesh.position.set(w/2,0.36+(h-ft-0.36)/2,0);p.add(mesh);
-  if(h>1.0){const lk=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.16,0.02),STEEL);lk.position.set(w-0.1,1.0,0.03);p.add(lk);
-    const lv=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.025,0.03),STEEL);lv.position.set(w-0.14,1.02,0.055);p.add(lv);}
+  bar(0,ft,0,h);bar(w-ft,w,0,h);bar(ft,w-ft,h-ft,h);bar(ft,w-ft,0,0.1);bar(ft,w-ft,0.98,1.02);   // stiles, top and bottom rails, mid rail
+  const mh=h-ft-0.1,tex=MESHTEX.clone();tex.needsUpdate=true;tex.repeat.set((w-2*ft)/0.02,mh/0.02);
+  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w-2*ft,mh),new THREE.MeshStandardMaterial({map:tex,transparent:true,roughness:0.6,metalness:0.2,side:THREE.DoubleSide,depthWrite:false}));
+  mesh.position.set(w/2,0.1+mh/2,0);p.add(mesh);
+  if(h>1.0){const lk=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.14,0.02),STEEL);lk.position.set(w-0.07,1.0,-0.025);p.add(lk);
+    const lv=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.022,0.028),STEEL);lv.position.set(w-0.1,1.02,-0.05);p.add(lv);}
   wallGroup.add(p);}
 
 // ---------- Living ----------
 const MUSTARD=M('#d7a64a'),COBALT=M('#1d47a8',{roughness:0.85}),COBALT2=M('#2753b5',{roughness:0.85});
 use('pro');
 // colourful Afghan-style rug: red field, guls, layered borders, fringe
-(function(){const tex=canvasTex(512,576,(g,w,h)=>{
+(function(){const tex=canvasTex(512,784,(g,w,h)=>{
   g.fillStyle='#1f2c4f';g.fillRect(0,0,w,h);
   const band=(m,c)=>{g.fillStyle=c;g.fillRect(m,m,w-2*m,h-2*m);};
   band(10,'#d9772b');band(18,'#efe3c8');band(24,'#1f2c4f');band(48,'#c9a227');band(54,'#8e1f24');
@@ -277,16 +277,16 @@ use('pro');
   g.fillStyle='#efe3c8';for(let x=40;x<w-30;x+=26){g.fillRect(x,32,8,8);g.fillRect(x,h-40,8,8);}for(let y=40;y<h-30;y+=26){g.fillRect(32,y,8,8);g.fillRect(w-40,y,8,8);}
   // guls: octagons in rows
   const oct=(cx,cy,r,c)=>{g.fillStyle=c;g.beginPath();for(let i=0;i<8;i++){const a=Math.PI/8+i*Math.PI/4;g.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));}g.closePath();g.fill();};
-  for(let row=0;row<3;row++)for(let col=0;col<2;col++){const cx=170+col*172,cy=150+row*138;
+  for(let row=0;row<4;row++)for(let col=0;col<2;col++){const cx=170+col*172,cy=185+row*138;
     oct(cx,cy,62,'#1f2c4f');oct(cx,cy,50,'#d9772b');oct(cx,cy,38,'#efe3c8');oct(cx,cy,26,'#8e1f24');
     g.fillStyle='#1f2c4f';g.fillRect(cx-6,cy-30,12,60);g.fillRect(cx-30,cy-6,60,12);
     g.fillStyle='#2f7f6f';for(const[dx,dy]of[[-44,-44],[44,-44],[-44,44],[44,44]])g.fillRect(cx+dx-5,cy+dy-5,10,10);}
   // minor diamonds between guls
-  g.fillStyle='#c9a227';for(let row=0;row<2;row++){const cy=219+row*138;g.beginPath();g.moveTo(256,cy-16);g.lineTo(272,cy);g.lineTo(256,cy+16);g.lineTo(240,cy);g.fill();}
+  g.fillStyle='#c9a227';for(let row=0;row<3;row++){const cy=254+row*138;g.beginPath();g.moveTo(256,cy-16);g.lineTo(272,cy);g.lineTo(256,cy+16);g.lineTo(240,cy);g.fill();}
  });
- const rug=new THREE.Mesh(new THREE.PlaneGeometry(1.7,1.9),new THREE.MeshStandardMaterial({map:tex,roughness:1}));
- rug.rotation.x=-Math.PI/2;rug.position.set(1.95,0.012,1.65);rug.receiveShadow=true;furn.add(rug);
- for(const z of[0.68,2.62])for(let x=1.12;x<2.8;x+=0.035)boxR(x,x+0.012,0.002,0.008,z-0.03,z+0.03,M('#f2ead8'));
+ const rug=new THREE.Mesh(new THREE.PlaneGeometry(1.5,2.3),new THREE.MeshStandardMaterial({map:tex,roughness:1}));
+ rug.rotation.x=-Math.PI/2;rug.position.set(1.95,0.012,1.7);rug.receiveShadow=true;furn.add(rug);
+ for(const z of[0.52,2.88])for(let x=1.22;x<2.7;x+=0.035)boxR(x,x+0.012,0.002,0.008,z-0.03,z+0.03,M('#f2ead8'));
 })();
 // built-in day bed, full length of the west wall, storage drawers under
 boxR(0.1,1.05,0,0.42,0.1,2.4,WOOD);
@@ -783,10 +783,9 @@ use('both');
    if(i%2===0){const f2=new THREE.Mesh(new THREE.IcosahedronGeometry(r*0.7,1),leaf[(i+1)%4]);f2.position.set(-0.28,h+0.1+r*1.7,z+0.05);scene.add(f2);}});
 })();
 
-// welcome mat outside the front door
+// door mat outside the front door (plain coir, dark border)
 (function(){const c=document.createElement('canvas');c.width=300;c.height=168;const g=c.getContext('2d');
  g.fillStyle='#b9a27c';g.fillRect(0,0,300,168);g.strokeStyle='#5a4630';g.lineWidth=7;g.strokeRect(12,12,276,144);
- g.fillStyle='#4a3b2a';g.font='bold 44px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('WELCOME',150,86);
  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;
  boxR(-0.09,0.33,0,0.012,2.725,3.475,M('#9c8560',{roughness:1}),scene).castShadow=false;
  const m=new THREE.Mesh(new THREE.PlaneGeometry(0.75,0.42),new THREE.MeshStandardMaterial({map:t,roughness:1}));
