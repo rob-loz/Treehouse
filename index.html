@@ -848,21 +848,12 @@ use('both');
  })(-2.7,-2.7);
 })();
 
-// ---------- Roof (toggle): terracotta hip roof over the apartment block ----------
+// ---------- Roof (toggle): flat roof over the apartment block, projecting a little over the balcony ----------
 const roofG=new THREE.Group();roofG.visible=false;scene.add(roofG);
 (function(){
- const x0=-0.35,x1=6.85,z0=-0.35,z1=8.15,y0=2.5,H=1.5,cx=(x0+x1)/2,hw=(x1-x0)/2,ra=z0+hw,rb=z1-hw;   // ridge runs north–south
- const A=[x0,y0,z0],B=[x1,y0,z0],C=[x1,y0,z1],D=[x0,y0,z1],R1=[cx,y0+H,ra],R2=[cx,y0+H,rb];
- const tris=[[A,B,R1],[B,R2,R1],[B,C,R2],[C,D,R2],[D,R1,R2],[D,A,R1]];
- const pos=[];tris.forEach(t=>t.forEach(p=>pos.push(...p)));
- const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.computeVertexNormals();
- const tile=M('#cf7a48',{roughness:0.8,side:THREE.DoubleSide});
- const roof=new THREE.Mesh(geo,tile);roof.castShadow=true;roof.receiveShadow=true;roofG.add(roof);
- // fascia and ridge cap
- const fas=M('#f1eee8');
- boxR(x0,x1,y0-0.12,y0,z0,z0+0.06,fas,roofG);boxR(x0,x1,y0-0.12,y0,z1-0.06,z1,fas,roofG);
- boxR(x0,x0+0.06,y0-0.12,y0,z0,z1,fas,roofG);boxR(x1-0.06,x1,y0-0.12,y0,z0,z1,fas,roofG);
- boxR(cx-0.07,cx+0.07,y0+H,y0+H+0.07,ra,rb,M('#b5653a'),roofG);
+ const y0=2.5,x0=-0.3,x1=6.8,z0=-0.65,z1=8.1;
+ boxR(x0,x1,y0,y0+0.22,z0,z1,M('#d9d6cf'),roofG);                              // slab, north edge over the balcony
+ boxR(x0-0.02,x1+0.02,y0+0.22,y0+0.3,z0-0.02,z1+0.02,M('#8f9490',{roughness:0.9}),roofG);   // membrane / parapet cap
 })();
 
 // ---------- Labels ----------
