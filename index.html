@@ -60,7 +60,7 @@ const canvas=document.getElementById('c');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.outputEncoding=THREE.sRGBEncoding;
-renderer.shadowMap.enabled=true;
+renderer.shadowMap.enabled=false;   // shadows off
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 
 const scene=new THREE.Scene();
@@ -774,10 +774,8 @@ use('both');
    BRICK=M('#b3805c'),TIMB=M('#8c6a47'),CONC=M('#cfcfca'),ROAD=M('#6f7376'),GRASS=M('#a9bf96'),WH=M('#f4f4f1'),CREAM=M('#ebe7df');
  const add=(x1,x2,y1,y2,z1,z2,m,sh)=>{const b=boxR(x1,x2,y1,y2,z1,z2,m,scene);b.castShadow=!!sh;b.receiveShadow=true;return b;};
 
- // ground, road, footpath
+ // ground
  const ground=new THREE.Mesh(new THREE.CircleGeometry(60,48),GRASS);ground.rotation.x=-Math.PI/2;ground.position.y=GY;ground.receiveShadow=true;scene.add(ground);
- add(-60,60,GY,GY+0.02,-19,-13,ROAD);                    // street
- add(-60,60,GY,GY+0.03,-6.8,-5.4,CONC);                  // footpath
 
  // building body under the apartment
  const X1=-0.1,X2=6.6,Z1=-0.1,Z2=7.9;
@@ -814,8 +812,6 @@ use('both');
  for(const[x,z]of[[2.4,-1.6],[3.8,-1.5]]){add(x-0.25,x+0.25,GY+0.42,GY+0.47,z-0.25,z+0.25,BLK);add(x-0.25,x+0.25,GY+0.47,GY+1.0,z+0.2,z+0.25,BLK);}
  add(2.8,3.4,GY+0.4,GY+0.45,-1.2,-0.7,BLK);
 
- // white car parked on the street
- add(4,8.4,GY+0.3,GY+0.85,-15.2,-13.6,WH);add(5.0,7.4,GY+0.85,GY+1.3,-15.1,-13.7,M('#2c3338'));add(4.1,8.3,GY+0.15,GY+0.35,-15.1,-13.7,BLK);
 
   // large pine right up against the corner between the balcony and the entrance balcony (cropped at roof height)
  (function(x,z){const h=2.55-GY;cyl(0.45,0.55,h,x,GY,z,M('#5a4433'),scene);
