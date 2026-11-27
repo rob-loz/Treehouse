@@ -814,7 +814,7 @@ use('both');
 
 
   // large pine right up against the corner between the balcony and the entrance balcony (cropped at roof height)
- (function(x,z){const h=2.55-GY;cyl(0.45,0.55,h,x,GY,z,M('#5a4433'),scene);
+ (function(x,z){const h=1.9-GY;cyl(0.45,0.55,h,x,GY,z,M('#5a4433'),scene);
    const P=[M('#2f5a3a'),M('#376843'),M('#2a5134')];
    [[-4.8,2.5,1.3,2.0],[-3.2,2.45,1.25,2.0],[-1.6,2.35,1.2,1.9],[-0.1,2.25,1.15,1.8],[1.25,2.1,1.5,1.3]].forEach(([y,rb,rt,hh],i)=>{
      const c=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,hh,10),P[i%3]);c.position.set(x,y+hh/2,z);c.rotation.y=i*0.7;c.castShadow=true;scene.add(c);});
