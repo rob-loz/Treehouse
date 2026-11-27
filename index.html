@@ -774,11 +774,10 @@ use('both');
    BRICK=M('#b3805c'),TIMB=M('#8c6a47'),CONC=M('#cfcfca'),ROAD=M('#6f7376'),GRASS=M('#a9bf96'),WH=M('#f4f4f1'),CREAM=M('#ebe7df');
  const add=(x1,x2,y1,y2,z1,z2,m,sh)=>{const b=boxR(x1,x2,y1,y2,z1,z2,m,scene);b.castShadow=!!sh;b.receiveShadow=true;return b;};
 
- // ground, road, footpath, driveway
+ // ground, road, footpath
  const ground=new THREE.Mesh(new THREE.CircleGeometry(60,48),GRASS);ground.rotation.x=-Math.PI/2;ground.position.y=GY;ground.receiveShadow=true;scene.add(ground);
  add(-60,60,GY,GY+0.02,-19,-13,ROAD);                    // street
  add(-60,60,GY,GY+0.03,-6.8,-5.4,CONC);                  // footpath
- add(-9,-6.2,GY,GY+0.03,-13,5,CONC);                     // driveway to the garage
 
  // building body under the apartment
  const X1=-0.1,X2=6.6,Z1=-0.1,Z2=7.9;
@@ -807,23 +806,7 @@ use('both');
  // ground floor north face: window strips onto the garden
  for(const[xa,xb]of[[1.2,2.2],[2.7,5.4]])add(xa,xb,-8.1,-6.9,Z1-0.03,Z1,GLASS);
 
- // garden: white lattice fence, shrubs, patio chairs
- const cv=document.createElement('canvas');cv.width=cv.height=32;const g=cv.getContext('2d');g.strokeStyle='#ffffff';g.lineWidth=3.5;
- g.beginPath();g.moveTo(0,0);g.lineTo(32,32);g.moveTo(0,32);g.lineTo(32,0);g.stroke();
- const tex=new THREE.CanvasTexture(cv);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
- const FZ=-4.8,FX1=-3.4,FX2=9.8,FH=1.0;
- tex.repeat.set((FX2-FX1)/0.28,FH/0.28);
- const lat=new THREE.Mesh(new THREE.PlaneGeometry(FX2-FX1,FH),new THREE.MeshStandardMaterial({map:tex,transparent:true,alphaTest:0.4,side:THREE.DoubleSide,roughness:0.9}));
- lat.position.set((FX1+FX2)/2,GY+0.2+FH/2,FZ);scene.add(lat);
- add(FX1,FX2,GY+1.2,GY+1.27,FZ-0.04,FZ+0.04,WH);add(FX1,FX2,GY+0.14,GY+0.2,FZ-0.04,FZ+0.04,WH);
- for(let x=FX1;x<=FX2+0.01;x+=2.2)add(x-0.05,x+0.05,GY,GY+1.32,FZ-0.05,FZ+0.05,WH);
- // brick wall with timber slat fence along the driveway
- add(-6.0,-5.8,GY,GY+1.3,-6,3,BRICK);
- for(let i=0;i<5;i++)add(-6.0,-5.8,GY+1.34+i*0.16,GY+1.44+i*0.16,-6,3,TIMB);
- for(let z=-6;z<=3.01;z+=1.5)add(-6.02,-5.78,GY+1.3,GY+2.2,z-0.04,z+0.04,TIMB);
- // garage at the end of the driveway
- add(-9.5,-5.9,GY,GY+3.1,5,12,M('#efede6'),true);add(-9.6,-5.8,GY+3.1,GY+3.2,4.9,12.1,SLAB);
- add(-8.8,-6.6,GY,GY+2.3,4.97,5.0,M('#8a8f93'));
+ // garden: shrubs, patio chairs
  // shrubs
  const sh=[M('#4a7a43'),M('#5d8a4c'),M('#3d6a3a')];
  [[-4.2,-3.9,0.7],[-1.0,-3.9,0.6],[0.2,-3.7,0.9],[1.6,-4.1,0.55],[6.6,-3.5,0.8],[7.8,-4.0,0.7],[8.9,-3.2,0.6],[-1.5,-1.0,0.5],[6.8,-1.4,0.6]].forEach(([x,z,r],i)=>{
@@ -834,18 +817,12 @@ use('both');
  // white car parked on the street
  add(4,8.4,GY+0.3,GY+0.85,-15.2,-13.6,WH);add(5.0,7.4,GY+0.85,GY+1.3,-15.1,-13.7,M('#2c3338'));add(4.1,8.3,GY+0.15,GY+0.35,-15.1,-13.7,BLK);
 
- // trees (canopies keep the same height as before, trunks now reach down to the street)
- const leaf=[M('#4f7a43'),M('#5d8a4c'),M('#3f6a3a')],trunk=M('#6b5440');
- const trees=[[1.5,-10.5,2.8],[5,-10,2.6],[8.5,-8,2.2],[-4,2,2.0],[10.5,3.5,2.3],[-3.5,8,1.8],[9.5,10,2.0],[3,12,2.4]];
- trees.forEach(([x,z,r],i)=>{const top=-6+r*2.2,h=top-GY;cyl(0.15,0.22,h,x,GY,z,trunk,scene);
-   const s=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),leaf[i%3]);s.position.set(x,-6+r*1.6+r*0.6,z);s.castShadow=true;scene.add(s);
-   const s2=new THREE.Mesh(new THREE.IcosahedronGeometry(r*0.7,1),leaf[(i+1)%3]);s2.position.set(x+r*0.5,-6+r*1.6+r*1.2,z-r*0.3);scene.add(s2);});
- // large pine outside the corner between the balcony and the entrance balcony (cropped at roof height)
+  // large pine right up against the corner between the balcony and the entrance balcony (cropped at roof height)
  (function(x,z){const h=2.55-GY;cyl(0.45,0.55,h,x,GY,z,M('#5a4433'),scene);
    const P=[M('#2f5a3a'),M('#376843'),M('#2a5134')];
    [[-4.8,2.5,1.3,2.0],[-3.2,2.45,1.25,2.0],[-1.6,2.35,1.2,1.9],[-0.1,2.25,1.15,1.8],[1.25,2.1,1.5,1.3]].forEach(([y,rb,rt,hh],i)=>{
      const c=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,hh,10),P[i%3]);c.position.set(x,y+hh/2,z);c.rotation.y=i*0.7;c.castShadow=true;scene.add(c);});
- })(-2.7,-2.7);
+ })(-2.0,-1.8);
 })();
 
 // ---------- Roof (toggle): flat roof over the apartment block, projecting a little over the balcony ----------
