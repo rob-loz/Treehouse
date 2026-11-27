@@ -46,6 +46,7 @@
   <div class="row" id="views"></div>
   <div class="row">
     <button class="tog" id="tWalls">Walls: low</button>
+    <button class="tog" id="tRoof">Roof: off</button>
     <button class="tog" id="tSpin">Auto-rotate: off</button>
   </div>
   <div id="hint">Drag to rotate · pinch to zoom · two-finger drag to pan</div>
@@ -847,6 +848,23 @@ use('both');
  })(-2.7,-2.7);
 })();
 
+// ---------- Roof (toggle): terracotta hip roof over the apartment block ----------
+const roofG=new THREE.Group();roofG.visible=false;scene.add(roofG);
+(function(){
+ const x0=-0.35,x1=6.85,z0=-0.35,z1=8.15,y0=2.5,H=1.5,cx=(x0+x1)/2,hw=(x1-x0)/2,ra=z0+hw,rb=z1-hw;   // ridge runs north–south
+ const A=[x0,y0,z0],B=[x1,y0,z0],C=[x1,y0,z1],D=[x0,y0,z1],R1=[cx,y0+H,ra],R2=[cx,y0+H,rb];
+ const tris=[[A,B,R1],[B,R2,R1],[B,C,R2],[C,D,R2],[D,R1,R2],[D,A,R1]];
+ const pos=[];tris.forEach(t=>t.forEach(p=>pos.push(...p)));
+ const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.computeVertexNormals();
+ const tile=M('#cf7a48',{roughness:0.8,side:THREE.DoubleSide});
+ const roof=new THREE.Mesh(geo,tile);roof.castShadow=true;roof.receiveShadow=true;roofG.add(roof);
+ // fascia and ridge cap
+ const fas=M('#f1eee8');
+ boxR(x0,x1,y0-0.12,y0,z0,z0+0.06,fas,roofG);boxR(x0,x1,y0-0.12,y0,z1-0.06,z1,fas,roofG);
+ boxR(x0,x0+0.06,y0-0.12,y0,z0,z1,fas,roofG);boxR(x1-0.06,x1,y0-0.12,y0,z0,z1,fas,roofG);
+ boxR(cx-0.07,cx+0.07,y0+H,y0+H+0.07,ra,rb,M('#b5653a'),roofG);
+})();
+
 // ---------- Labels ----------
 const ROOMS=[
  ['Living / Dining','4.5 × 3.6 m',2.2,1.9],['Kitchen','2.0 × 3.6 m',5.4,1.9],['Bath / Laundry','',1.8,4.5],
@@ -888,6 +906,7 @@ function go(i){const[,p,t]=VIEWS[i];
 const viewsEl=document.getElementById('views');
 VIEWS.forEach((vw,i)=>{const b=document.createElement('button');b.textContent=vw[0];b.onclick=()=>go(i);viewsEl.appendChild(b);});
 document.getElementById('tWalls').onclick=()=>setWalls(wallMode==='low'?'full':'low');
+document.getElementById('tRoof').onclick=e=>{roofG.visible=!roofG.visible;if(roofG.visible&&wallMode==='low')setWalls('full');e.target.textContent='Roof: '+(roofG.visible?'on':'off');e.target.classList.toggle('on',roofG.visible);};
 document.getElementById('tSpin').onclick=e=>{controls.autoRotate=!controls.autoRotate;controls.autoRotateSpeed=0.8;e.target.textContent='Auto-rotate: '+(controls.autoRotate?'on':'off');e.target.classList.toggle('on',controls.autoRotate);};
 controls.addEventListener('start',()=>{tween=null;});
 function setVersion(v){version=v;setWalls(wallMode);
