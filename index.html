@@ -111,15 +111,15 @@ const GREEN_TILE=canvasTex(256,96,(g,w,h)=>{g.fillStyle='#cfd6cf';g.fillRect(0,0
 // ---------- Floors (x east, z south, metres) ----------
 function floor(x1,x2,z1,z2,c,y,par){const m=boxR(x1,x2,(y||0)-0.04,(y||0),z1,z2,M(c),par||scene);m.castShadow=false;}
 boxR(-0.25,6.75,-0.32,-0.04,-0.25,8.05,M('#c9c4bb'),scene).castShadow=false; // slab
-floor(0,4.5,0,3.6,'#dcdad5');          // living carpet
-floor(0.6,0.61,2.5,3.6,'#dcdad5');
-floor(2.9,3.83,3.6,5.35,'#dcdad5');    // hall
+floor(0,4.5,0,3.6,'#ded9cc');          // living carpet
+floor(0.6,0.61,2.5,3.6,'#ded9cc');
+floor(2.9,3.83,3.6,5.35,'#ded9cc');    // hall
 floor(4.5,6.5,0,3.6,'#d3d5d6',0,GROUPS.pro.o);        // proposed kitchen: light grey tiles
 floor(0.6,2.9,3.6,5.35,'#d3d5d6',0,GROUPS.pro.o);     // proposed bath: light grey tiles
 floor(4.5,6.5,0,3.6,'#dccbad',0,GROUPS.cur.o);        // current kitchen: timber-look floor
 floor(0.6,2.9,3.6,5.35,'#9a7b5f',0,GROUPS.cur.o);     // current bath: brown tiles
-floor(0.6,3.83,5.35,7.8,'#5c4c41');    // bedroom 1 (dark carpet)
-floor(3.83,6.5,3.6,7.8,'#d6cfc2');     // bedroom 2 (light carpet)
+floor(0.6,3.83,5.35,7.8,'#ded9cc');    // bedroom 1 carpet
+floor(3.83,6.5,3.6,7.8,'#ded9cc');     // bedroom 2 carpet
 floor(0.84,5.64,-1.2,0,'#a3a6a8');     // balcony tiles
 boxR(0.84,5.64,-0.32,-0.04,-1.25,0,M('#c9c4bb'),scene);
 // tile grid on balcony + bath
@@ -186,6 +186,7 @@ function buildWalls(H){
   door(2.9,4.5,0.75,[-0.94,-0.34],'#f7f7f5',dh); // bath
   door(3.75,5.35,0.8,[-0.34,0.94],'#f7f7f5',dh); // bedroom 1
   door(3.83,4.4,0.8,[0.94,0.34],'#f7f7f5',dh);  // bedroom 2
+  secDoor(dh);                                   // flyscreen security door, front
   if(version==='pro'){
   // wall finishes
   paintRoom(3.83,6.5,3.6,7.8,H,[{y0:0,y1:9,mat:M('#f7d3b5')}]);           // main bedroom: pastel apricot
@@ -246,6 +247,22 @@ function door(hx,hz,w,dir,color,h){
   const leaf=new THREE.Mesh(new THREE.BoxGeometry(w,h,0.04),M(color,{roughness:0.5}));
   leaf.position.set(w/2,h/2,0);leaf.castShadow=true;p.add(leaf);
   const handle=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.02,0.06),STEEL);handle.position.set(w-0.08,1.0,0);if(h>1.0)p.add(handle);
+  wallGroup.add(p);}
+
+// flyscreen security door on the front: outside the entry door, hinged on the left as seen from outside (north side), shown closed
+const MESHTEX=(function(){const c=document.createElement('canvas');c.width=c.height=8;const g=c.getContext('2d');g.strokeStyle='rgba(40,44,46,0.95)';g.lineWidth=1.4;
+  g.beginPath();g.moveTo(0,0.5);g.lineTo(8,0.5);g.moveTo(0.5,0);g.lineTo(0.5,8);g.stroke();
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;})();
+function secDoor(h){
+  const w=0.76,ft=0.05,th=0.04,FR=M('#34393c',{metalness:0.35,roughness:0.5});
+  const p=new THREE.Group();p.position.set(0.46,0,2.71);p.rotation.y=-Math.PI/2;   // hinge at z 2.71 (north = left from outside), leaf runs south
+  const bar=(x1,x2,y1,y2)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(x2-x1,y2-y1,th),FR);m.position.set((x1+x2)/2,(y1+y2)/2,0);p.add(m);return m;};
+  bar(0,ft,0,h);bar(w-ft,w,0,h);bar(ft,w-ft,h-ft,h);bar(ft,w-ft,0,0.36);bar(ft,w-ft,0.94,1.0);   // stiles, top rail, kick panel, lock rail
+  const tex=MESHTEX.clone();tex.needsUpdate=true;tex.repeat.set((w-2*ft)/0.02,(h-ft-0.36)/0.02);
+  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w-2*ft,h-ft-0.36),new THREE.MeshStandardMaterial({map:tex,transparent:true,roughness:0.6,metalness:0.3,side:THREE.DoubleSide,depthWrite:false}));
+  mesh.position.set(w/2,0.36+(h-ft-0.36)/2,0);p.add(mesh);
+  if(h>1.0){const lk=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.16,0.02),STEEL);lk.position.set(w-0.1,1.0,0.03);p.add(lk);
+    const lv=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.025,0.03),STEEL);lv.position.set(w-0.14,1.02,0.055);p.add(lv);}
   wallGroup.add(p);}
 
 // ---------- Living ----------
@@ -765,6 +782,15 @@ use('both');
    const f=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),leaf[i]);f.position.set(-0.3,h+0.1+r*0.8,z);f.castShadow=true;scene.add(f);
    if(i%2===0){const f2=new THREE.Mesh(new THREE.IcosahedronGeometry(r*0.7,1),leaf[(i+1)%4]);f2.position.set(-0.28,h+0.1+r*1.7,z+0.05);scene.add(f2);}});
 })();
+
+// welcome mat outside the front door
+(function(){const c=document.createElement('canvas');c.width=300;c.height=168;const g=c.getContext('2d');
+ g.fillStyle='#b9a27c';g.fillRect(0,0,300,168);g.strokeStyle='#5a4630';g.lineWidth=7;g.strokeRect(12,12,276,144);
+ g.fillStyle='#4a3b2a';g.font='bold 44px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('WELCOME',150,86);
+ const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;
+ boxR(-0.09,0.33,0,0.012,2.725,3.475,M('#9c8560',{roughness:1}),scene).castShadow=false;
+ const m=new THREE.Mesh(new THREE.PlaneGeometry(0.75,0.42),new THREE.MeshStandardMaterial({map:t,roughness:1}));
+ m.rotation.x=-Math.PI/2;m.rotation.z=-Math.PI/2;m.position.set(0.12,0.0125,3.1);scene.add(m);})();
 
 // ---------- Surroundings: the building below, garden, street ----------
 // The apartment is the top floor of a 4-storey block (3 m per floor), so the street level sits 9 m below the apartment floor.
